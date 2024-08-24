@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Room</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    #chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      background-color: #000;
+      color: #fff;
+    }
+    #message-input {
+      display: flex;
+      padding: 10px;
+      background-color: #333;
+      border-top: 1px solid #444;
+    }
+    #message {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #fff;
+      background-color: #222;
+    }
+    #send-button {
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      background-color: #007bff;
+      cursor: pointer;
+    }
+    #send-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="messages"></div>
+    <div id="message-input">
+      <input type="text" id="message" placeholder="Type a message...">
+      <button id="send-button">Send</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKyCVCevlpIpKs0zK4vq8NRRe5Ue8Q72w",
+      authDomain: "mad-00.firebaseapp.com",
+      databaseURL: "https://mad-00-default-rtdb.firebaseio.com",
+      projectId: "mad-00",
+      storageBucket: "mad-00.appspot.com",
+      messagingSenderId: "607331728107",
+      appId: "1:607331728107:web:d741813c3a9d81f1e85cae",
+      measurementId: "G-VS9JTMR64Q"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    const messagesRef = ref(database, 'messages/');
+    const messagesContainer = document.getElementById('messages');
+    const messageInput = document.getElementById('message');
+    const sendButton = document.getElementById('send-button');
+    const username = localStorage.getItem('username') || 'Anonymous';
+    const color = localStorage.getItem('color') || '#FFFFFF';
+
+    function writeMessage(messageId, messageContent) {
+      set(ref(database, 'messages/' + messageId), {
+        content: messageContent,
+        username: username,
+        color: color,
+        timestamp: Date.now()
+      });
+    }
+
+    function readMessages() {
+      onValue(messagesRef, (snapshot) => {
+        const data = snapshot.val();
+        messagesContainer.innerHTML = '';
+        for (const id in data) {
+          const message = data[id];
+          const messageElement = document.createElement('div');
+          messageElement.innerHTML = `<span style="color: ${message.color};">${message.username}:</span> ${message.content}`;
+          messagesContainer.appendChild(messageElement);
+        }
+      });
+    }
+
+    sendButton.addEventListener('click', () => {
+      const messageContent = messageInput.value.trim();
+      if (messageContent) {
+        const newMessageId = Date.now(); // Simple unique ID based on timestamp
+        writeMessage(newMessageId, messageContent);
+        messageInput.value = '';
+      }
+    });
+
+    readMessages();
+  </script>
+
+</body></html>
